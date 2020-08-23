@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from . import MercadoPagoProvider
-from .. import PurchasedItem, RedirectNeeded, PaymentError, PaymentStatus
+from payments import PurchasedItem, RedirectNeeded, PaymentError, PaymentStatus
 
 CLIENT_ID = 'Mercado Pago Test User'
 PAYMENT_TOKEN = '5a4dae68-2715-4b1e-8bb2-2c2dbe9255f6'
