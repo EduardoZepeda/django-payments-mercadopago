@@ -6,22 +6,30 @@ from django.utils.translation import gettext as _
 
 from decimal import Decimal, ROUND_HALF_UP
 import json
+import logging
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 from payments import PaymentError, PaymentStatus, RedirectNeeded
-from payments import BasicProvider, get_base_url
+from payments.core import BasicProvider, get_base_url
 
 import mercadopago
 
 CENTS = Decimal('0.01')
 
+logger = logging.getLogger(__name__)
+
 
 class MercadoPagoProvider(BasicProvider):
 
-    def __init__(self, access_token, init_point, **kwargs):
+    def __init__(self, access_token, sandbox_mode=False, **kwargs):
         self.access_token = access_token
-        self.init_point = init_point
+        self.sandbox_mode = sandbox_mode
+        self.init_point = 'sandbox_init_point' if self.sandbox_mode else 'init_point'
         self.mp = mercadopago.MP(self.access_token)
-        self.mp.sandbox_mode(False)
+        self.mp.sandbox_mode(self.sandbox_mode)
         super(MercadoPagoProvider, self).__init__(**kwargs)
 
     def get_form(self, payment, data=None, file_data=None):
@@ -40,15 +48,23 @@ class MercadoPagoProvider(BasicProvider):
         if 200 <= preferenceResult['status'] <= 201:
             return preferenceResult
         else:
-            message = self.get_value_from_response(preferenceResult, 'message')
+            message = self.get_value_from_response(
+                preferenceResult, 'message')
+            logger.warning(message, extra={
+                           "response": preferenceResult})
             raise PaymentError(message)
 
     def get_value_from_response(self, response, key):
         return response.get('response', {}).get(key, {})
 
+    def create_notification_url(self, payment):
+        return urljoin(get_base_url(), reverse('process_payment',
+                                               kwargs={"token": payment.token}))
+
     def create_preference_data(self, payment):
         items = list(self.get_transactions_items(payment))
-        items.insert(0, self.get_order_name_and_shipping_cost(payment))
+        items.insert(
+            0, self.get_order_name_and_shipping_cost(payment))
         sub_total = (
             payment.total - payment.delivery - payment.tax)
         sub_total = sub_total.quantize(CENTS, rounding=ROUND_HALF_UP)
@@ -82,7 +98,7 @@ class MercadoPagoProvider(BasicProvider):
                 "pending": payment.get_failure_url(),
             },
             "auto_return": "approved",
-            "notification_url": payment.get_process_url(),
+            "notification_url": self.create_notification_url(payment),
             "external_reference": payment.token,
         }
         return preferenceData
@@ -129,7 +145,9 @@ class MercadoPagoProvider(BasicProvider):
         if paymentInfo["status"] == 200:
             return paymentInfo
         else:
-            message = self.get_value_from_response(paymentInfo, 'message')
+            message = self.get_value_from_response(
+                paymentInfo, 'message')
+            logger.warning(message, extra={"response": paymentInfo})
             raise PaymentError(message)
 
     def refund(self, payment, amount=None):
@@ -141,16 +159,19 @@ class MercadoPagoProvider(BasicProvider):
             payment.change_status(PaymentStatus.REFUNDED)
             return amount
         else:
-            message = self.get_value_from_response(refundResult, 'message')
+            message = self.get_value_from_response(
+                refundResult, 'message')
             raise PaymentError(message)
 
     def cancel(self, payment):
-        cancelationResult = self.mp.cancel_payment(payment.transaction_id)
+        cancelationResult = self.mp.cancel_payment(
+            payment.transaction_id)
         payment.extra_data = json.dumps(cancelationResult)
         if cancelationResult['status'] == 200:
             payment.change_status(PaymentStatus.REJECTED)
         else:
             message = self.get_value_from_response(
                 cancelationResult, 'message')
+            logger.warning(message, extra={
+                           "response": cancelationResult})
             raise PaymentError(message)
-
