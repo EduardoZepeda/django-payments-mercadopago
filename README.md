@@ -1,10 +1,8 @@
-django-payments-mercadopago
-===========================
+# django-payments-mercadopago
 
 A mercadopago payment gateway backend for [django-payments](https://github.com/mirumee/django-payments)
 
-Installation
-------------
+## Installation
 
 You can install it via pip
 
@@ -21,15 +19,13 @@ INSTALLED_APPS = [
     ]
 ```
 
-Settings.py configuration
--------------------------
+## Settings.py configuration
 
 Add the *payments_mercadopago.MercadoPagoProvider* to your *PAYMENT_VARIANTS* variable. Also to make it available add MercadoPago to your *CHECKOUT_PAYMENT_CHOICES variable*
 
 Mercado Pago doesn't require you to specify a fixed sandbox endpoint, instead they provide you with a sandbox token and a production token, for testing and production, respectively.
 
-Configuration for development
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+### Configuration for development
 
 ```Python
 PAYMENT_VARIANTS = {
@@ -44,8 +40,7 @@ CHECKOUT_PAYMENT_CHOICES = [('MercadoPago', 'Mercado Pago')]
 
 If you have any problem using localhost urls as the return value of get_failure_url() or get_success_url() methods try using [ngrok](https://ngrok.com/) instead.
 
-Configuration for production
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+### Configuration for production
 
 ```Python
 PAYMENT_VARIANTS = {
@@ -58,13 +53,12 @@ PAYMENT_VARIANTS = {
 CHECKOUT_PAYMENT_CHOICES = [('MercadoPago', 'Mercado Pago')]
 ```
 
-Obtaining the Tokens
---------------------
+## Obtaining the Tokens
 
 You can get your own Mercado Pago production and sandbox access tokens in your [Mercado Pago developer panel](https://www.mercadopago.com.mx/developers/panel/credentials)
 
 
-Documentation
--------------
+## Documentation
 
 For detailed instructions on how to use django-payments please visit the official [django-payments documentation](https://django-payments.readthedocs.io/en/latest/)
+
