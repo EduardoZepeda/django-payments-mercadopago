@@ -1,6 +1,5 @@
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseForbidden
-from django.contrib.sites.models import Site
 from django.shortcuts import redirect
 from django.utils.translation import gettext as _
 
