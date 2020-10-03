@@ -19,9 +19,9 @@ setup(
     author='Eduardo Zepeda',
     author_email='eduardozepeda@coffeebytes.dev',
     description='A django-payments backend for the mercadopago payment gateway',
-    version='0.2',
+    version='v0.3',
     url='https://github.com/EduardoZepeda/django-payments-mercadopago',
-    download_url = 'https://github.com/EduardoZepeda/django-payments-mercadopago/archive/v0.2.tar.gz',
+    download_url = 'https://github.com/EduardoZepeda/django-payments-mercadopago/archive/v0.3.tar.gz',
     packages=PACKAGES,
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -38,5 +38,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Application Frameworks',
         'Topic :: Software Development :: Libraries :: Python Modules'],
     install_requires=REQUIREMENTS,
-    keywords = ['django-payments', 'mercadopago'],
+    keywords = ['django-payments', 'mercadopago', 'django'],
     zip_safe=False)
