@@ -32,7 +32,7 @@ PAYMENT_VARIANTS = {
     # ...
     'MercadoPago':('payments_mercadopago.MercadoPagoProvider',{
         'access_token': 'MERCADO_PAGO_SANDBOX_ACCESS_TOKEN',
-        'sandbox_mode: True})
+        'sandbox_mode': True})
 }
 
 CHECKOUT_PAYMENT_CHOICES = [('MercadoPago', 'Mercado Pago')]
@@ -47,7 +47,7 @@ PAYMENT_VARIANTS = {
     # ...
     'MercadoPago':('payments_mercadopago.MercadoPagoProvider',{
         'access_token': 'MERCADO_PAGO_ACCESS_TOKEN',
-        'sandbox_mode: False})
+        'sandbox_mode': False})
 }
 
 CHECKOUT_PAYMENT_CHOICES = [('MercadoPago', 'Mercado Pago')]
