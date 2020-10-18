@@ -64,7 +64,7 @@ class TestMercadoPagoProvider(TestCase):
     def setUp(self):
         self.payment = Payment()
         self.provider = MercadoPagoProvider(
-            access_token=ACCESS_TOKEN, init_point=INIT_POINT)
+            access_token=ACCESS_TOKEN, sandbox_mode=True)
 
     @patch('mercadopago.MP.create_preference')
     def test_provider_raises_redirect_needed_on_success_preference_creation(
