@@ -3,6 +3,12 @@ django-payments-mercadopago
 
 A mercadopago payment gateway backend for `django-payments <https://github.com/mirumee/django-payments>`_
 
+Compatibility
+-------------
+
+* Python 3.6 ≥ 3.8
+* Django 2.2 ≥ 3.2
+
 
 Installation
 ------------
@@ -60,7 +66,6 @@ Obtaining the Tokens
 --------------------
 
 You can get your own Mercado Pago production and sandbox access tokens in your `Mercado pago developer panel <https://www.mercadopago.com/developers/panel/credentials>`_
-
 
 
 Documentation
