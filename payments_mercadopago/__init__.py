@@ -46,12 +46,9 @@ class MercadoPagoProvider(BasicProvider):
         payment.extra_data = json.dumps(preferenceResult)
         if 200 <= preferenceResult['status'] <= 201:
             return preferenceResult
-        else:
-            message = self.get_value_from_response(
-                preferenceResult, 'message')
-            logger.warning(message, extra={
-                           "response": preferenceResult})
-            raise PaymentError(message)
+        message = self.get_value_from_response(preferenceResult, 'message')
+        logger.warning(message, extra={"response": preferenceResult})
+        raise PaymentError(message)
 
     def get_value_from_response(self, response, key):
         return response.get('response', {}).get(key, {})
@@ -122,32 +119,36 @@ class MercadoPagoProvider(BasicProvider):
                 }
         return item
 
+    def process_payment_data_received(self, payment, collection_id):
+        payment_information = self.get_payment_information(collection_id)
+        payment.transaction_id = collection_id
+        payment.extra_data = json.dumps(payment_information)
+        return payment_information
+
+    def set_payment_status(self, payment, payment_status):
+        if payment_status == 'approved':
+            payment.captured_amount = payment.total
+            payment.change_status(PaymentStatus.CONFIRMED)
+        else:
+            payment.change_status(PaymentStatus.WAITING)
+
     def process_data(self, payment, request):
-        if 'data.id' in request.GET and 'type' in request.GET:
-            if request.GET.get('type') == 'payment':
-                collection_id = request.GET.get('data.id')
-                payment.transaction_id = collection_id
-                payment_information = self.get_payment_information(
-                    collection_id)
-                payment.extra_data = json.dumps(payment_information)
-                collection_status = self.get_value_from_response(
-                    payment_information, "status")
-                if collection_status == 'approved':
-                    payment.captured_amount = payment.total
-                    payment.change_status(PaymentStatus.CONFIRMED)
-                elif collection_status == 'in_process':
-                    payment.change_status(PaymentStatus.WAITING)
+        if all(['data.id' in request.GET, 'type' in request.GET, request.GET.get('type') == 'payment']):
+            collection_id = request.GET.get('data.id')
+            payment_information = self.process_payment_data_received(
+                payment, collection_id)
+            payment_status = self.get_value_from_response(
+                payment_information, "status")
+            self.set_payment_status(payment, payment_status)
         return HttpResponse(status=200)
 
     def get_payment_information(self, payment_id):
         paymentInfo = self.mp.get_payment(payment_id)
         if paymentInfo["status"] == 200:
             return paymentInfo
-        else:
-            message = self.get_value_from_response(
-                paymentInfo, 'message')
-            logger.warning(message, extra={"response": paymentInfo})
-            raise PaymentError(message)
+        message = self.get_value_from_response(paymentInfo, 'message')
+        logger.warning(message, extra={"response": paymentInfo})
+        raise PaymentError(message)
 
     def refund(self, payment, amount=None):
         amount = payment.captured_amount
@@ -157,20 +158,14 @@ class MercadoPagoProvider(BasicProvider):
         if refundResult['status'] == 201:
             payment.change_status(PaymentStatus.REFUNDED)
             return amount
-        else:
-            message = self.get_value_from_response(
-                refundResult, 'message')
-            raise PaymentError(message)
+        message = self.get_value_from_response(refundResult, 'message')
+        raise PaymentError(message)
 
     def cancel(self, payment):
-        cancelationResult = self.mp.cancel_payment(
-            payment.transaction_id)
+        cancelationResult = self.mp.cancel_payment(payment.transaction_id)
         payment.extra_data = json.dumps(cancelationResult)
         if cancelationResult['status'] == 200:
             payment.change_status(PaymentStatus.REJECTED)
-        else:
-            message = self.get_value_from_response(
-                cancelationResult, 'message')
-            logger.warning(message, extra={
-                           "response": cancelationResult})
-            raise PaymentError(message)
+        message = self.get_value_from_response(cancelationResult, 'message')
+        logger.warning(message, extra={"response": cancelationResult})
+        raise PaymentError(message)
