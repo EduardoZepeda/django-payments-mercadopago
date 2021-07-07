@@ -1,3 +1,4 @@
+===========================
 django-payments-mercadopago
 ===========================
 
@@ -13,7 +14,7 @@ Compatibility
 Installation
 ------------
 
-You can install it via pip
+You can install it via pip, pipenv or your favorite virtual environment manager
 
 .. code-block:: bash
 
@@ -47,7 +48,7 @@ Configuration for development
 
   CHECKOUT_PAYMENT_CHOICES = [('MercadoPago', 'Mercado Pago')]
 
-If you have any problem using localhost urls as the return value of get_failure_url() or get_success_url() methods try using `ngrok <https://ngrok.com>`_ instead.
+If you have any problem using localhost urls as the return value of get_failure_url() or get_success_url() methods try using `ngrok <https://ngrok.com>`_.
 
 Configuration for production
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,4 +72,4 @@ You can get your own Mercado Pago production and sandbox access tokens in your `
 Documentation
 -------------
 
-For detailed instructions on how to use django-payments please visit the official `django-payments documentation <https://django-payments.readthedocs.io/en/latest/>`_
+This project uses django-payments to work. For detailed instructions on how to make and configure payments using django-payments please visit the official `django-payments documentation <https://django-payments.readthedocs.io/en/latest/>`_

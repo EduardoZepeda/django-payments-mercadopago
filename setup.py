@@ -48,7 +48,7 @@ setup(
     author_email='eduardozepeda@coffeebytes.dev',
     python_requires='>=3.5',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
@@ -72,7 +72,7 @@ setup(
     tests_require=test_requirements,
     url='https://github.com/EduardoZepeda/django-payments-mercadopago',
     download_url='https://github.com/EduardoZepeda/django-payments-mercadopago/archive/0.4.0.tar.gz',
-    version='0.4.0',
+    version='0.4.1',
     cmdclass={
         'test': PyTest},
     zip_safe=False,
