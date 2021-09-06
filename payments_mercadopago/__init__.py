@@ -32,7 +32,7 @@ class MercadoPagoProvider(BasicProvider):
         super(MercadoPagoProvider, self).__init__(**kwargs)
 
     def get_form(self, payment, data=None, file_data=None):
-        if not payment.id:
+        if not payment.pk:
             payment.save()
         payment_data = self.create_payment(payment)
         redirect_to = self.get_value_from_response(
