@@ -61,11 +61,6 @@ class MercadoPagoProvider(BasicProvider):
         items = list(self.get_transactions_items(payment))
         items.insert(
             0, self.get_order_name_and_shipping_cost(payment))
-        sub_total = (
-            payment.total - payment.delivery - payment.tax)
-        sub_total = sub_total.quantize(CENTS, rounding=ROUND_HALF_UP)
-        total = payment.total.quantize(CENTS, rounding=ROUND_HALF_UP)
-        tax = payment.tax.quantize(CENTS, rounding=ROUND_HALF_UP)
         delivery = payment.delivery.quantize(
             CENTS, rounding=ROUND_HALF_UP)
         full_name = payment.billing_first_name + " " \
