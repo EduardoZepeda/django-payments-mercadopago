@@ -11,7 +11,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 REQUIREMENTS = [
-    'mercadopago>=0.3.5',
+    'mercadopago==0.3.5',
     'Django>=2.0.0',
     'django-payments>=0.12.3',
 ]
