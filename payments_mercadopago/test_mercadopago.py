@@ -40,23 +40,23 @@ class Payment(Mock):
     billing_address_2 = '111'
     billing_postcode = '00000'
 
-    def change_status(self, status, message=''):
+    def change_status(self, status: int, message: str ='') -> None:
         self.status = status
         self.message = message
 
-    def get_failure_url(self):
+    def get_failure_url(self) -> str:
         return 'http://cancel.com'
 
-    def get_process_url(self):
+    def get_process_url(self) -> str:
         return 'http://example.com'
 
-    def get_purchased_items(self):
+    def get_purchased_items(self) -> PurchasedItem:
         return [
             PurchasedItem(
                 name='foo', quantity=Decimal('10'), price=Decimal('20'),
                 currency='MXN', sku='bar')]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return 'http://success.com'
 
 class TestMercadoPagoProvider(TestCase):

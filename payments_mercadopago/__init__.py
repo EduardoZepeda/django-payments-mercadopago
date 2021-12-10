@@ -1,7 +1,9 @@
+from typing import Any
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.utils.translation import gettext as _
+from django.http import HttpRequest
 
 from decimal import Decimal, ROUND_HALF_UP
 import json
@@ -13,8 +15,10 @@ except ImportError:
 
 from payments import PaymentError, PaymentStatus, RedirectNeeded
 from payments.core import BasicProvider, get_base_url
+from payments.models import BasePayment
 
 import mercadopago
+
 
 CENTS = Decimal('0.01')
 
@@ -23,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class MercadoPagoProvider(BasicProvider):
 
-    def __init__(self, access_token, sandbox_mode=False, **kwargs):
+    def __init__(self, access_token: str, sandbox_mode: bool = False, **kwargs) -> None:
         self.access_token = access_token
         self.sandbox_mode = sandbox_mode
         self.init_point = 'sandbox_init_point' if self.sandbox_mode else 'init_point'
@@ -31,7 +35,7 @@ class MercadoPagoProvider(BasicProvider):
         self.mp.sandbox_mode(self.sandbox_mode)
         super(MercadoPagoProvider, self).__init__(**kwargs)
 
-    def get_form(self, payment, data=None, file_data=None):
+    def get_form(self, payment: BasePayment) -> RedirectNeeded:
         if not payment.id:
             payment.save()
         payment_data = self.create_payment(payment)
@@ -40,7 +44,7 @@ class MercadoPagoProvider(BasicProvider):
         payment.change_status(PaymentStatus.WAITING)
         raise RedirectNeeded(redirect_to)
 
-    def create_payment(self, payment):
+    def create_payment(self, payment: BasePayment) -> dict:
         preference = self.create_preference_data(payment)
         preferenceResult = self.mp.create_preference(preference)
         payment.extra_data = json.dumps(preferenceResult)
@@ -50,14 +54,14 @@ class MercadoPagoProvider(BasicProvider):
         logger.warning(message, extra={"response": preferenceResult})
         raise PaymentError(message)
 
-    def get_value_from_response(self, response, key):
+    def get_value_from_response(self, response, key) -> Any:
         return response.get('response', {}).get(key, {})
 
-    def create_notification_url(self, payment):
+    def create_notification_url(self, payment: BasePayment) -> str:
         return urljoin(get_base_url(), reverse('process_payment',
                                                kwargs={"token": payment.token}))
 
-    def create_preference_data(self, payment):
+    def create_preference_data(self, payment: BasePayment) -> dict:
         items = list(self.get_transactions_items(payment))
         items.insert(
             0, self.get_order_name_and_shipping_cost(payment))
@@ -94,7 +98,7 @@ class MercadoPagoProvider(BasicProvider):
         }
         return preferenceData
 
-    def get_transactions_items(self, payment):
+    def get_transactions_items(self, payment: BasePayment) -> dict:
         for purchased_item in payment.get_purchased_items():
             price = purchased_item.price.quantize(
                 CENTS, rounding=ROUND_HALF_UP)
@@ -105,7 +109,7 @@ class MercadoPagoProvider(BasicProvider):
                     'id': purchased_item.sku}
             yield item
 
-    def get_order_name_and_shipping_cost(self, payment):
+    def get_order_name_and_shipping_cost(self, payment: BasePayment) -> dict:
         item = {'title': payment.description + _(' and shipping'),
                 'quantity': 1,
                 'unit_price': float(payment.delivery),
@@ -114,20 +118,20 @@ class MercadoPagoProvider(BasicProvider):
                 }
         return item
 
-    def process_payment_data_received(self, payment, collection_id):
+    def process_payment_data_received(self, payment: BasePayment, collection_id: int) -> dict:
         payment_information = self.get_payment_information(collection_id)
         payment.transaction_id = collection_id
         payment.extra_data = json.dumps(payment_information)
         return payment_information
 
-    def set_payment_status(self, payment, payment_status):
+    def set_payment_status(self, payment: BasePayment, payment_status:str) -> None:
         if payment_status == 'approved':
             payment.captured_amount = payment.total
             payment.change_status(PaymentStatus.CONFIRMED)
         else:
             payment.change_status(PaymentStatus.WAITING)
 
-    def process_data(self, payment, request):
+    def process_data(self, payment: BasePayment, request: HttpRequest) -> HttpResponse:
         if all(['data.id' in request.GET, 'type' in request.GET, request.GET.get('type') == 'payment']):
             collection_id = request.GET.get('data.id')
             payment_information = self.process_payment_data_received(
@@ -137,7 +141,7 @@ class MercadoPagoProvider(BasicProvider):
             self.set_payment_status(payment, payment_status)
         return HttpResponse(status=200)
 
-    def get_payment_information(self, payment_id):
+    def get_payment_information(self, payment_id: int) -> dict:
         paymentInfo = self.mp.get_payment(payment_id)
         if paymentInfo["status"] == 200:
             return paymentInfo
@@ -145,9 +149,10 @@ class MercadoPagoProvider(BasicProvider):
         logger.warning(message, extra={"response": paymentInfo})
         raise PaymentError(message)
 
-    def refund(self, payment, amount=None):
+    def refund(self, payment: BasePayment, amount=None) -> Decimal:
         amount = payment.captured_amount
         # MercadoPago Official Python SDK doesn't support partial refunds
+        # Arg: amount is keeped for future releases
         refundResult = self.mp.refund_payment(payment.transaction_id)
         payment.extra_data = json.dumps(refundResult)
         if refundResult['status'] == 201:
@@ -156,7 +161,7 @@ class MercadoPagoProvider(BasicProvider):
         message = self.get_value_from_response(refundResult, 'message')
         raise PaymentError(message)
 
-    def cancel(self, payment):
+    def cancel(self, payment: BasePayment) -> None:
         cancelationResult = self.mp.cancel_payment(payment.transaction_id)
         payment.extra_data = json.dumps(cancelationResult)
         if cancelationResult['status'] == 200:
