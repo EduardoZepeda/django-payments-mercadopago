@@ -35,7 +35,7 @@ class MercadoPagoProvider(BasicProvider):
         self.mp.sandbox_mode(self.sandbox_mode)
         super(MercadoPagoProvider, self).__init__(**kwargs)
 
-    def get_form(self, payment: BasePayment) -> RedirectNeeded:
+    def get_form(self, payment: BasePayment) -> None:
         if not payment.id:
             payment.save()
         payment_data = self.create_payment(payment)

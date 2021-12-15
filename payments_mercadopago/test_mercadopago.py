@@ -32,7 +32,7 @@ class Payment(Mock):
     variant = VARIANT
     transaction_id = None
     message = ''
-    extra_data = {}
+    extra_data = '{}'
     billing_first_name = 'John'
     billing_last_name = 'Doe'
     billing_email = 'false@email.com'
